@@ -2,10 +2,13 @@
 
 Agora Basic contains Voice Calling, Video Calling, Realtime Chat and Interactive Live Streaming Demos in flutter.
 
-Packages used :
+## Flutter Packages used :
 [agora_rtc_engine](https://pub.dev/packages/agora_rtc_engine) , [agora_chat_sdk](https://pub.dev/packages/agora_chat_sdk)
 
-Screenshots :
+## Important note : 
+#### You need to change appId, channelName, tempToken (Audio/video & Live Interactive) and generate userToken(RTM) from the agora dashboard in order to make it work.
+
+## Screenshots :
 
 <img src="https://user-images.githubusercontent.com/53267243/208416556-15014dd8-b01d-44cb-aee0-4c1b8cff5d07.gif" width="200" height="400" />
 <img src="https://user-images.githubusercontent.com/53267243/208396448-8f557f5a-a4f6-4d4c-9e1a-6452f73bed0e.png" width="200" height="400" />
