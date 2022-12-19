@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:agora_chat_sdk/agora_chat_sdk.dart';
 
 class AgoraChatConfig {
-  static const String appKey = "61419896#1046071";
-  static const String userId = "1";
-  static const String agoraToken =
-      "007eJxTYNi0OvPD0d3HuI3W1n1OOd+z8/fk1BmKDat5kpz01yxe3B+iwGCWamGcnJxiYm6eZGJimJxsmWRpZGRqZmpmlpRomWiUFC++ILkhkJFB0ekJKyMDKwMjEIL4KgwmBokWZiamBrrmaWbmuoaGqSm6FkmmaboGSYYWiclmicbGyWYAHaQoNw==";
+  static const String appKey = "XXXXXXX#XXXXXXX";
+  static const String userId = "X";
+  static const String agoraToken = "XXXXXXXXXXXXXXXXXXXXXX";
 }
 
 class AgoraChatPage extends StatefulWidget {

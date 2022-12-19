@@ -1,6 +1,4 @@
-import 'package:agora_demo/screens/audio_call_page.dart';
 import 'package:agora_demo/screens/demo_home_page.dart';
-import 'package:agora_demo/screens/video_stream_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
@@ -53,16 +51,9 @@ class _LoginPageState extends State<LoginPage> {
     final GoogleSignIn googleSignIn = GoogleSignIn();
 
     try {
-      // if (!kIsWeb) {
-      //   await googleSignIn.signOut();
-      // }
       await FirebaseAuth.instance.signOut();
     } catch (e) {
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   Authentication.customSnackBar(
-      //     content: 'Error signing out. Try again.',
-      //   ),
-      // );
+      print(e);
     }
   }
 
@@ -99,45 +90,25 @@ class _LoginPageState extends State<LoginPage> {
         // handle the error here
       }
     }
-
-    print("GOOGLE USER ===>");
-    print(user);
     if (user != null) {
+      // ignore: use_build_context_synchronously
       Navigator.of(context)
           .push(MaterialPageRoute(builder: (_) => const DemoHomePage()));
     }
   }
 
-  // Future signInWithApple() async {
-
-  //   FirebaseAuth.instance
-  //       .signInWithCredential(credential)
-  //       .then((authResult) {
-  //     print("authResult =>");
-  //     print(authResult.user);
-  //     Navigator.of(context)
-  //         .push(MaterialPageRoute(builder: (_) => const DemoHomePage()));
-  //   });
-  // }
-
   Future signInWithFacebook() async {
     // Trigger the sign-in flow
     final LoginResult loginResult = await FacebookAuth.instance.login();
-    print("loginResult =>");
-    print(loginResult);
 
     // Create a credential from the access token
     final OAuthCredential facebookAuthCredential =
         FacebookAuthProvider.credential(loginResult.accessToken!.token);
-    print("facebookAuthCredential =>");
-    print(facebookAuthCredential);
 
     // Once signed in, return the UserCredential
     FirebaseAuth.instance
         .signInWithCredential(facebookAuthCredential)
         .then((authResult) {
-      print("authResult =>");
-      print(authResult.user);
       Navigator.of(context)
           .push(MaterialPageRoute(builder: (_) => const DemoHomePage()));
     });
@@ -153,13 +124,8 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            button(
-                'Login with Google',
-                () => {
-                      signInWithGoogle(context: context)
-                      // Navigator.of(context).push(MaterialPageRoute(
-                      //     builder: (_) => const VideoStreamPage()))
-                    }),
+            button('Login with Google',
+                () => {signInWithGoogle(context: context)}),
             button(
               'Login with facebook',
               () => signInWithFacebook(),
