@@ -1,3 +1,4 @@
+import 'package:agora_demo/screens/agora_chat_page.dart';
 import 'package:agora_demo/screens/audio_call_page.dart';
 import 'package:agora_demo/screens/video_call_page.dart';
 import 'package:agora_demo/screens/video_stream_page.dart';
@@ -60,6 +61,13 @@ class _DemoHomePageState extends State<DemoHomePage> {
                 () => {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => const AudioCallPage())),
+                    }),
+            button(
+                'Agora Chat',
+                () => {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) =>
+                              const AgoraChatPage(title: 'Agora Chat'))),
                     }),
           ],
         ),

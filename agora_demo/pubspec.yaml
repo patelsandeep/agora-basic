@@ -37,6 +37,7 @@ dependencies:
   firebase_core: 
   firebase_auth:
   flutter_facebook_auth: ^5.0.6
+  agora_chat_sdk:
   # sign_in_with_apple: ^4.2.0
 
   # The following adds the Cupertino Icons font to your application.
