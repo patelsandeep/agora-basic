@@ -13,7 +13,7 @@ class VideoStreamPage extends StatefulWidget {
 }
 
 class _VideoStreamPageState extends State<VideoStreamPage> {
-  int uid = 0; // uid of the local user
+  int uid = 1; // uid of the local user
 
   int? _remoteUid; // uid of the remote user
   bool _isJoined = false; // Indicates if the local user has joined the channel
@@ -45,7 +45,10 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
 
     // Set channel profile and client role
     if (_isHost) {
+      agoraEngine.setClientRole(ClientRole.Broadcaster);
       await agoraEngine.startPreview();
+    } else {
+      agoraEngine.setClientRole(ClientRole.Audience);
     }
 
     await agoraEngine.joinChannel(
@@ -88,7 +91,6 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
     );
 
     // Set client role and channel profile
-    agoraEngine.setClientRole(ClientRole.Audience);
     agoraEngine.setChannelProfile(ChannelProfile.LiveBroadcasting);
   }
 
