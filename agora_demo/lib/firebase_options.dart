@@ -51,6 +51,10 @@ class DefaultFirebaseOptions {
     appId: '1:1016551248064:web:87b390839f03d8aa515d25',
     messagingSenderId: '1016551248064',
     projectId: 'agora-basic',
+    androidClientId:
+        '1016551248064-gmj5u3vbrquk17ihc87po54a61kl9l2j.apps.googleusercontent.com',
+    iosClientId:
+        '1016551248064-clilivalhj7q1jql6p26fu7n5j5o93e3.apps.googleusercontent.com',
     authDomain: 'agora-basic.firebaseapp.com',
     storageBucket: 'agora-basic.appspot.com',
     measurementId: 'G-DRBW9T4GSV',
@@ -70,8 +74,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1016551248064',
     projectId: 'agora-basic',
     storageBucket: 'agora-basic.appspot.com',
-    androidClientId: '1016551248064-gmj5u3vbrquk17ihc87po54a61kl9l2j.apps.googleusercontent.com',
-    iosClientId: '1016551248064-clilivalhj7q1jql6p26fu7n5j5o93e3.apps.googleusercontent.com',
+    androidClientId:
+        '1016551248064-gmj5u3vbrquk17ihc87po54a61kl9l2j.apps.googleusercontent.com',
+    iosClientId:
+        '1016551248064-clilivalhj7q1jql6p26fu7n5j5o93e3.apps.googleusercontent.com',
     iosBundleId: 'com.example.agoraDemo',
   );
 }

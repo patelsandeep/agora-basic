@@ -6,4 +6,5 @@ const String channelName = "XXXX";
 // video/audio call token
 const String token = "XXXXXXXXXXXXXX";
 
-const String chatUserToken = "XXXXXXXXXXX";
+const String chatUserToken =
+    "007eJxTYMjcY2i48uHZzgXpEsfmKx2auyGykqnp4s3yJ9pnFRxvyxoqMJilWhgnJ6eYmJsnmZgYJidbJlkaGZmamZqZJSVaJholcXxZlNwQyMgwJeMnAyMDKxAzMoD4KgwmBokWZiamBrrmaWbmuoaGqSm6FkmmaboGSYYWiclmicbGyWYAuhsoBw==";
