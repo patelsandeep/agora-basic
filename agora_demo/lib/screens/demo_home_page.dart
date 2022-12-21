@@ -1,5 +1,9 @@
 import 'package:agora_demo/screens/agora_chat_page.dart';
+import 'package:agora_demo/screens/video_call_page.dart';
+import 'package:agora_demo/screens/video_stream_page.dart';
 import 'package:flutter/material.dart';
+
+import 'audio_call_page.dart';
 
 class DemoHomePage extends StatefulWidget {
   const DemoHomePage({super.key});
@@ -41,24 +45,24 @@ class _DemoHomePageState extends State<DemoHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // button(
-            //     'Live Stream',
-            //     () => {
-            //           Navigator.of(context).push(MaterialPageRoute(
-            //               builder: (_) => const VideoStreamPage()))
-            //         }),
-            // button(
-            //     'Video Call',
-            //     () => {
-            //           Navigator.of(context).push(MaterialPageRoute(
-            //               builder: (_) => const VideoCallPage())),
-            //         }),
-            // button(
-            //     'Audio Call',
-            //     () => {
-            //           Navigator.of(context).push(MaterialPageRoute(
-            //               builder: (_) => const AudioCallPage())),
-            //         }),
+            button(
+                'Live Stream',
+                () => {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const VideoStreamPage()))
+                    }),
+            button(
+                'Video Call',
+                () => {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const VideoCallPage())),
+                    }),
+            button(
+                'Audio Call',
+                () => {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const AudioCallPage())),
+                    }),
             button(
                 'Agora Chat',
                 () => {
