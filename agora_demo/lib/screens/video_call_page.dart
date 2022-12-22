@@ -136,44 +136,94 @@ class _VideoCallPageState extends State<VideoCallPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Video Calling'),
-        ),
-        body: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          children: [
-            // Container for the local video
-            Container(
-              height: 240,
-              decoration: BoxDecoration(border: Border.all()),
-              child: Center(child: _localPreview()),
-            ),
-            const SizedBox(height: 10),
-            //Container for the Remote video
-            Container(
-              height: 240,
-              decoration: BoxDecoration(border: Border.all()),
-              child: Center(child: _remoteVideo()),
-            ),
-            // Button Row
-            Row(
-              children: <Widget>[
+      appBar: AppBar(
+        title: const Text('Video Calling'),
+      ),
+      body: kIsWeb
+          ? ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              children: [
+                // Container for the local video
+                Container(
+                  height: 240,
+                  decoration: BoxDecoration(border: Border.all()),
+                  child: Center(child: _localPreview()),
+                ),
+                const SizedBox(height: 10),
+                //Container for the Remote video
+                Container(
+                  height: 240,
+                  decoration: BoxDecoration(border: Border.all()),
+                  child: Center(child: _remoteVideo()),
+                ),
+                // Button Row
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _isJoined ? null : () => {join()},
+                        child: const Text("Join"),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _isJoined ? () => {leave()} : null,
+                        child: const Text("Leave"),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          : Column(
+              children: [
+                //Container for the Remote video
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: _isJoined ? null : () => {join()},
-                    child: const Text("Join"),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      _remoteVideo(),
+                      //Container for the local video
+                      if (_isJoined)
+                        Positioned(
+                          bottom: 20,
+                          right: 20,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: SizedBox(
+                              height: 150,
+                              width: 100,
+                              child: _localPreview(),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _isJoined ? () => {leave()} : null,
-                    child: const Text("Leave"),
+                // Button Row
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _isJoined ? null : () => {join()},
+                          child: const Text("Join"),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _isJoined ? () => {leave()} : null,
+                          child: const Text("Leave"),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ],
-        ));
+    );
   }
 }
