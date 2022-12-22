@@ -1,8 +1,9 @@
 import 'package:agora_demo/screens/agora_chat_page.dart';
+import 'package:agora_demo/screens/my_home_page.dart';
 import 'package:agora_demo/screens/video_call_page.dart';
 import 'package:agora_demo/screens/video_stream_page.dart';
 import 'package:flutter/material.dart';
-
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'audio_call_page.dart';
 
 class DemoHomePage extends StatefulWidget {
@@ -69,6 +70,12 @@ class _DemoHomePageState extends State<DemoHomePage> {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) =>
                               const AgoraChatPage(title: 'Agora Chat'))),
+                    }),
+            button(
+                'Speech To Text',
+                () => {
+                      Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => MyHomePage())),
                     }),
           ],
         ),

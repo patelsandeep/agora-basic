@@ -109,16 +109,28 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
     } else if (_isHost) {
       // Local user joined as a host
       return _isRenderSurfaceView
-          ? const rtc_local_view.SurfaceView(channelId: channelName)
-          : const rtc_local_view.TextureView(channelId: channelName);
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: const rtc_local_view.SurfaceView(channelId: channelName),
+            )
+          : ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: const rtc_local_view.TextureView(channelId: channelName),
+            );
     } else {
       // Local user joined as audience
       if (_remoteUid != null) {
         return _isRenderSurfaceView
-            ? rtc_remote_view.SurfaceView(
-                uid: _remoteUid!, channelId: channelName)
-            : rtc_remote_view.TextureView(
-                uid: _remoteUid!, channelId: channelName);
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: rtc_remote_view.SurfaceView(
+                    uid: _remoteUid!, channelId: channelName),
+              )
+            : ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: rtc_remote_view.TextureView(
+                    uid: _remoteUid!, channelId: channelName),
+              );
       } else {
         return const Text(
           'Waiting for a host to join',
@@ -149,7 +161,6 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
             // Container for the local video
             Container(
               height: 240,
-              decoration: BoxDecoration(border: Border.all()),
               child: Center(child: _videoPanel()),
             ),
             // Radio Buttons
