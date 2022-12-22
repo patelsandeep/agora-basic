@@ -1,5 +1,6 @@
 import 'package:agora_demo/utils/constants.dart';
 import 'package:agora_rtc_engine/rtc_engine.dart';
+import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
 import 'package:agora_rtc_engine/rtc_remote_view.dart' as rtc_remote_view;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
   bool _isHost =
       true; // Indicates whether the user has joined as a host or audience
   late RtcEngine agoraEngine; // Agora engine instance
+  final bool _isRenderSurfaceView = true;
 
   @override
   initState() {
@@ -29,7 +31,8 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
 
   @override
   void dispose() async {
-    await agoraEngine.leaveChannel();
+    leave();
+    agoraEngine.destroy();
     super.dispose();
   }
 
@@ -40,27 +43,32 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
   }
 
   void join() async {
+    await agoraEngine.enableVideo();
+    await agoraEngine.startPreview();
+
     // Set channel options
     ChannelMediaOptions options = ChannelMediaOptions();
 
     // Set channel profile and client role
-    if (_isHost) {
-      agoraEngine.setClientRole(ClientRole.Broadcaster);
-      await agoraEngine.startPreview();
-    } else {
-      agoraEngine.setClientRole(ClientRole.Audience);
-    }
+    await agoraEngine
+        .setClientRole(_isHost ? ClientRole.Broadcaster : ClientRole.Audience);
+    // await agoraEngine.setChannelProfile(ChannelProfile.LiveBroadcasting);
+    await agoraEngine.setChannelProfile(_isHost
+        ? ChannelProfile.LiveBroadcasting
+        : ChannelProfile.Communication);
 
     await agoraEngine.joinChannel(
         token, channelName, '', uid, options = options);
   }
 
-  void leave() {
+  Future<void> leave() async {
+    await agoraEngine.disableVideo();
+    await agoraEngine.stopPreview();
+    await agoraEngine.leaveChannel();
     setState(() {
       _isJoined = false;
       _remoteUid = null;
     });
-    agoraEngine.leaveChannel();
   }
 
   Future<void> setupVideoSDKEngine() async {
@@ -69,8 +77,6 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
 
     //create an instance of the Agora engine
     agoraEngine = await RtcEngine.createWithContext(RtcEngineContext(appId));
-
-    await agoraEngine.enableVideo();
 
     // Register the event handler
     agoraEngine.setEventHandler(
@@ -102,12 +108,17 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
       );
     } else if (_isHost) {
       // Local user joined as a host
-      return rtc_remote_view.TextureView(uid: uid, channelId: channelName);
+      return _isRenderSurfaceView
+          ? const rtc_local_view.SurfaceView(channelId: channelName)
+          : const rtc_local_view.TextureView(channelId: channelName);
     } else {
       // Local user joined as audience
       if (_remoteUid != null) {
-        return rtc_remote_view.SurfaceView(
-            uid: _remoteUid!, channelId: channelName);
+        return _isRenderSurfaceView
+            ? rtc_remote_view.SurfaceView(
+                uid: _remoteUid!, channelId: channelName)
+            : rtc_remote_view.TextureView(
+                uid: _remoteUid!, channelId: channelName);
       } else {
         return const Text(
           'Waiting for a host to join',

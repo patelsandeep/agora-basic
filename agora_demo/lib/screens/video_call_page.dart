@@ -1,5 +1,6 @@
 import 'package:agora_demo/utils/constants.dart';
 import 'package:agora_rtc_engine/rtc_engine.dart';
+import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
 import 'package:agora_rtc_engine/rtc_remote_view.dart' as rtc_remote_view;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
   int? _remoteUid; // uid of the remote user
   bool _isJoined = false; // Indicates if the local user has joined the channel
   late RtcEngine agoraEngine; // Agora engine instance
+  final bool _isRenderSurfaceView = true;
 
   showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -35,6 +37,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
   @override
   void dispose() async {
     leave();
+    agoraEngine.destroy();
     super.dispose();
   }
 
@@ -44,8 +47,6 @@ class _VideoCallPageState extends State<VideoCallPage> {
 
     //create an instance of the Agora engine
     agoraEngine = await RtcEngine.createWithContext(RtcEngineContext(appId));
-
-    await agoraEngine.enableVideo();
 
     // Register the event handler
     agoraEngine.setEventHandler(
@@ -65,21 +66,21 @@ class _VideoCallPageState extends State<VideoCallPage> {
       ),
     );
 
-    await agoraEngine.enableVideo();
-    await agoraEngine.startPreview();
-
-    // Set client role and channel profile
-    await agoraEngine.setChannelProfile(ChannelProfile.Communication);
+    // Set Client Role & Channel Profile
+    await agoraEngine.setChannelProfile(ChannelProfile.LiveBroadcasting);
     await agoraEngine.setClientRole(ClientRole.Broadcaster);
   }
 
   // Display local video preview
   Widget _localPreview() {
     if (_isJoined) {
-      return rtc_remote_view.TextureView(
-        uid: uid,
-        channelId: channelName,
-      );
+      return _isRenderSurfaceView
+          ? const rtc_local_view.SurfaceView(
+              channelId: channelName,
+            )
+          : const rtc_local_view.TextureView(
+              channelId: channelName,
+            );
     } else {
       return const Text(
         'Join a channel',
@@ -89,9 +90,10 @@ class _VideoCallPageState extends State<VideoCallPage> {
   }
 
   void join() async {
+    await agoraEngine.enableVideo();
     await agoraEngine.startPreview();
 
-    // Set channel options including the client role and channel profile
+    // Set channel options
     ChannelMediaOptions options = ChannelMediaOptions();
 
     try {
@@ -102,21 +104,27 @@ class _VideoCallPageState extends State<VideoCallPage> {
     }
   }
 
-  void leave() {
+  Future<void> leave() async {
+    await agoraEngine.disableVideo();
+    await agoraEngine.stopPreview();
+    await agoraEngine.leaveChannel();
     setState(() {
       _isJoined = false;
       _remoteUid = null;
     });
-    agoraEngine.leaveChannel();
   }
 
 // Display remote user's video
   Widget _remoteVideo() {
     if (_remoteUid != null) {
-      return rtc_remote_view.SurfaceView(
-        uid: _remoteUid!,
-        channelId: channelName,
-      );
+      print('_remoteUid = $_remoteUid');
+      return _isRenderSurfaceView
+          ? rtc_remote_view.SurfaceView(
+              uid: _remoteUid!,
+              channelId: channelName,
+            )
+          : rtc_remote_view.TextureView(
+              uid: _remoteUid!, channelId: channelName);
     } else {
       return const Text(
         'Please wait for remote user to join',
