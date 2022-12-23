@@ -131,7 +131,9 @@ class _GptChatAPIDemoState extends State<GptChatAPIDemo> {
     return IconButton(
       icon: const Icon(Icons.send),
       onPressed: () async {
-        if (_textController.text.isNotEmpty) {}
+        if (_textController.text.isNotEmpty) {
+          searchGPT(_textController.text);
+        }
       },
     );
   }
