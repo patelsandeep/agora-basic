@@ -201,8 +201,8 @@ class _GptChatAPIDemoState extends State<GptChatAPIDemo> {
                           ? _startListening
                           : _stopListening,
                       child: Container(
-                        height: 70,
-                        width: 70,
+                        height: 50,
+                        width: 50,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           boxShadow: kElevationToShadow[2],

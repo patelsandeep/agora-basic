@@ -132,6 +132,14 @@ class _DemoHomePageState extends State<DemoHomePage> {
                               builder: (_) => const GptChatAPIDemo()))
                         },
                     Colors.green),
+                // item(
+                //     'Agora + Chat GPT',
+                //     Icons.chat,
+                //     () => {
+                //           // Navigator.of(context).push(MaterialPageRoute(
+                //           //     builder: (_) => const GptChatAPIDemo()))
+                //         },
+                //     Colors.green),
                 const SizedBox(
                   width: 10,
                 ),

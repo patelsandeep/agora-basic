@@ -159,7 +159,7 @@ class _AudioCallPageState extends State<AudioCallPage> {
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(20))),
                             child: Image.asset(
-                              (isMute)
+                              (!isMute)
                                   ? 'images/unmute.png'
                                   : 'images/mute.png',
                               height: 20,
@@ -199,6 +199,7 @@ class _AudioCallPageState extends State<AudioCallPage> {
                   width: 20,
                 ),
                 GestureDetector(
+                    //CONNECT DISCONNECT CALL
                     onTap: () {
                       (_isJoined) ? leave() : join();
                     },

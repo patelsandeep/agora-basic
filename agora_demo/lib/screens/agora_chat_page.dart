@@ -1,8 +1,10 @@
-import 'package:agora_demo/utils/constants.dart';
-import 'package:flutter/material.dart';
 import 'package:agora_chat_sdk/agora_chat_sdk.dart';
+import 'package:agora_demo/screens/widget/chat_message_widget.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_chatgpt_api/flutter_chatgpt_api.dart' as chatgpt;
 
 class AgoraChatConfig {
+  static const String listenerId = "1";
   static const String appKey = "61419896#1046071";
   // static const String userId = "1";
   static const String userId = "2";
@@ -22,9 +24,10 @@ class AgoraChatPage extends StatefulWidget {
 }
 
 class _AgoraChatPageState extends State<AgoraChatPage> {
-  ScrollController scrollController = ScrollController();
+  final _textController = TextEditingController();
+  final _scrollController = ScrollController();
   String? _messageContent, _chatId = "1";
-  final List<String> _logText = [];
+  final List<chatgpt.ChatMessage> _messages = [];
 
   @override
   void initState() {
@@ -35,8 +38,17 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
 
   @override
   void dispose() {
-    ChatClient.getInstance.chatManager.removeEventHandler("UNIQUE_HANDLER_ID");
+    ChatClient.getInstance.chatManager
+        .removeEventHandler(AgoraChatConfig.listenerId);
     super.dispose();
+  }
+
+  void _scrollDown() {
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
   @override
@@ -46,23 +58,28 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
         title: Text(widget.title),
       ),
       body: Container(
-        padding: const EdgeInsets.only(left: 10, right: 10),
+        padding: const EdgeInsets.only(left: 10, right: 10, bottom: 16),
         child: Column(
           children: [
             const SizedBox(height: 20),
             Expanded(
               child: ListView.builder(
-                controller: scrollController,
-                itemBuilder: (_, index) {
-                  return Text(_logText[index]);
+                controller: _scrollController,
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  var message = _messages[index];
+                  return ChatMessageWidget(
+                    text: message.text,
+                    chatMessageType: message.chatMessageType,
+                  );
                 },
-                itemCount: _logText.length,
               ),
             ),
             Row(
               children: [
                 Expanded(
                     child: TextField(
+                  controller: _textController,
                   decoration: const InputDecoration(
                     hintText: "Enter message",
                   ),
@@ -91,7 +108,7 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
 
   void _addChatListener() {
     ChatClient.getInstance.chatManager.addEventHandler(
-      "UNIQUE_HANDLER_ID",
+      AgoraChatConfig.listenerId,
       ChatEventHandler(onMessagesReceived: onMessagesReceived),
     );
   }
@@ -108,23 +125,22 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
     }
   }
 
-  void _signOut() async {
-    try {
-      await ChatClient.getInstance.logout(true);
-      _addLogToConsole("sign out succeed");
-    } on ChatError catch (e) {
-      _addLogToConsole(
-          "sign out failed, code: ${e.code}, desc: ${e.description}");
-    }
-  }
+  // void _signOut() async {
+  //   try {
+  //     await ChatClient.getInstance.logout(true);
+  //     _addLogToConsole("sign out succeed");
+  //   } on ChatError catch (e) {
+  //     _addLogToConsole(
+  //         "sign out failed, code: ${e.code}, desc: ${e.description}");
+  //   }
+  // }
 
   void _sendMessage() async {
     if (_chatId == null || _messageContent == null) {
       _addLogToConsole("single chat id or message content is null");
       return;
     }
-    print(_messageContent);
-    print(_chatId);
+
     var msg = ChatMessage.createTxtSendMessage(
       targetId: _chatId!,
       content: _messageContent!,
@@ -132,6 +148,19 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
     msg.setMessageStatusCallBack(MessageStatusCallBack(
       onSuccess: () {
         _addLogToConsole("send message: $_messageContent");
+        _textController.clear();
+        setState(
+          () {
+            _messages.add(
+              chatgpt.ChatMessage(
+                text: _messageContent ?? "",
+                chatMessageType: chatgpt.ChatMessageType.user,
+              ),
+            );
+          },
+        );
+        Future.delayed(const Duration(milliseconds: 50))
+            .then((_) => _scrollDown());
       },
       onError: (e) {
         _addLogToConsole(
@@ -149,8 +178,15 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
         case MessageType.TXT:
           {
             ChatTextMessageBody body = msg.body as ChatTextMessageBody;
-            _addLogToConsole(
-              "receive text message: ${body.content}, from: ${msg.from}",
+            setState(
+              () {
+                _messages.add(
+                  chatgpt.ChatMessage(
+                    text: body.content,
+                    chatMessageType: chatgpt.ChatMessageType.bot,
+                  ),
+                );
+              },
             );
           }
           break;
@@ -204,10 +240,7 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
   }
 
   void _addLogToConsole(String log) {
-    _logText.add(_timeString + ": " + log);
-    setState(() {
-      scrollController.jumpTo(scrollController.position.maxScrollExtent);
-    });
+    print(_timeString + ": " + log);
   }
 
   String get _timeString {
