@@ -130,19 +130,72 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Agora Demo'),
-      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            button('Login with Google',
-                () => {signInWithGoogle(context: context)}),
-            button(
-              'Login with facebook',
-              () => signInWithFacebook(),
-            )
+            GestureDetector(
+                onTap: () {
+                  signInWithGoogle(context: context);
+                },
+                child: Container(
+                    padding: const EdgeInsets.all(10),
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.red,
+                        ),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(20))),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'images/google.png',
+                          height: 30,
+                          width: 30,
+                        ),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        const Text(
+                          'Login with Google',
+                          style: TextStyle(color: Colors.black, fontSize: 18),
+                        )
+                      ],
+                    ))),
+            GestureDetector(
+                onTap: () {
+                  signInWithFacebook();
+                },
+                child: Container(
+                    padding: const EdgeInsets.all(10),
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.blue,
+                        ),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(20))),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'images/facebook.png',
+                          height: 30,
+                          width: 30,
+                        ),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        const Text(
+                          'Login with Facebook',
+                          style: TextStyle(color: Colors.black, fontSize: 18),
+                        )
+                      ],
+                    ))),
           ],
         ),
       ),

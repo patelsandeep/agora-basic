@@ -102,10 +102,7 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
 
   Widget _videoPanel() {
     if (!_isJoined) {
-      return const Text(
-        'Join a channel',
-        textAlign: TextAlign.center,
-      );
+      return Container();
     } else if (_isHost) {
       // Local user joined as a host
       return _isRenderSurfaceView
@@ -159,12 +156,10 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             // Container for the local video
-            Container(
-              height: 240,
-              child: Center(child: _videoPanel()),
-            ),
+            Expanded(child: _videoPanel()),
+
             // Radio Buttons
-            Row(children: <Widget>[
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
               Radio<bool>(
                 value: true,
                 groupValue: _isHost,
@@ -177,25 +172,30 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
                 onChanged: (value) => _handleRadioValueChange(value),
               ),
               const Text('Audience'),
+              const SizedBox(
+                width: 20,
+              ),
             ]),
-            // Button Row
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: ElevatedButton(
-                    child: const Text("Join"),
-                    onPressed: () => {join()},
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    child: const Text("Leave"),
-                    onPressed: () => {leave()},
-                  ),
-                ),
-              ],
-            ),
+
+            GestureDetector(
+                onTap: () {
+                  (_isJoined) ? leave() : join();
+                },
+                child: Container(
+                    margin: const EdgeInsets.only(bottom: 50),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                        color: (_isJoined) ? Colors.red : Colors.green,
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(20))),
+                    child: Image.asset(
+                      (!_isJoined)
+                          ? 'images/phone_call.png'
+                          : 'images/call-end.png',
+                      height: 20,
+                      width: 20,
+                      color: Colors.white,
+                    ))),
           ],
         ),
       ),

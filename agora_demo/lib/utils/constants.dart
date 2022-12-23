@@ -5,11 +5,11 @@ const String channelName = "video-call-2";
 
 // video/audio call token
 const String token =
-    "007eJxTYIia9u137pSX3/02nl4td03otfq1RvOZU1evqOJftfz1h1XvFBjMUi2Mk5NTTMzNk0xMDJOTLZMsjYxMzUzNzJISLRONko4xLUluCGRkeHvqECMjAwSC+DwMZZkpqfm6yYk5ObpGDAwA4pIm8A==";
+    "007eJxTYDh6umfugvAgg45Vay5JXzD+N1eJX61N2kjOvurM0z8PPmxUYDBLtTBOTk4xMTdPMjExTE62TLI0MjI1MzUzS0q0TDRK2lGwNLkhkJGhb/ocVkYGCATxeRjKMlNS83WTE3NydI0YGADQ+yO8";
 
 const String chatUserToken =
     "007eJxTYMjcY2i48uHZzgXpEsfmKx2auyGykqnp4s3yJ9pnFRxvyxoqMJilWhgnJ6eYmJsnmZgYJidbJlkaGZmamZqZJSVaJholcXxZlNwQyMgwJeMnAyMDKxAzMoD4KgwmBokWZiamBrrmaWbmuoaGqSm6FkmmaboGSYYWiclmicbGyWYAuhsoBw==";
 const String baseUrl = "https://api.openai.com/v1/";
 const String apiKey =
-    "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"; //Add api key here
+    "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"; //Add api key here
 const String chatUrl = "https://chat.openai.com/chat";

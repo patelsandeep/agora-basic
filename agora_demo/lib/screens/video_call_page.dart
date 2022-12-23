@@ -20,6 +20,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
   bool _isJoined = false; // Indicates if the local user has joined the channel
   late RtcEngine agoraEngine; // Agora engine instance
   final bool _isRenderSurfaceView = true;
+  bool isMute = false, isSpeakerOn = false;
 
   showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -126,11 +127,20 @@ class _VideoCallPageState extends State<VideoCallPage> {
           : rtc_remote_view.TextureView(
               uid: _remoteUid!, channelId: channelName);
     } else {
-      return const Text(
-        'Please wait for remote user to join',
-        textAlign: TextAlign.center,
-      );
+      return Container();
     }
+  }
+
+  muteUnmute() {
+    if (isMute) {
+      agoraEngine.enableAudio();
+    } else {
+      agoraEngine.disableAudio();
+    }
+
+    setState(() {
+      isMute = !isMute;
+    });
   }
 
   @override
@@ -139,91 +149,160 @@ class _VideoCallPageState extends State<VideoCallPage> {
       appBar: AppBar(
         title: const Text('Video Calling'),
       ),
-      body: kIsWeb
-          ? ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              children: [
-                // Container for the local video
-                Container(
-                  height: 240,
-                  decoration: BoxDecoration(border: Border.all()),
-                  child: Center(child: _localPreview()),
-                ),
-                const SizedBox(height: 10),
-                //Container for the Remote video
-                Container(
-                  height: 240,
-                  decoration: BoxDecoration(border: Border.all()),
-                  child: Center(child: _remoteVideo()),
-                ),
-                // Button Row
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _isJoined ? null : () => {join()},
-                        child: const Text("Join"),
-                      ),
+      body: Stack(
+        children: [
+          kIsWeb
+              ? ListView(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  children: [
+                    // Container for the local video
+                    Container(
+                      height: 240,
+                      decoration: BoxDecoration(border: Border.all()),
+                      child: Center(child: _localPreview()),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(height: 10),
+                    //Container for the Remote video
+                    Container(
+                      height: 240,
+                      decoration: BoxDecoration(border: Border.all()),
+                      child: Center(child: _remoteVideo()),
+                    ),
+                    // Button Row
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _isJoined ? null : () => {join()},
+                            child: const Text("Join"),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _isJoined ? () => {leave()} : null,
+                            child: const Text("Leave"),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              : Column(
+                  children: [
+                    //Container for the Remote video
                     Expanded(
-                      child: ElevatedButton(
-                        onPressed: _isJoined ? () => {leave()} : null,
-                        child: const Text("Leave"),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          _remoteVideo(),
+                          //Container for the local video
+                          if (_isJoined)
+                            Positioned(
+                              top: 20,
+                              right: 20,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: SizedBox(
+                                  height: 150,
+                                  width: 100,
+                                  child: _localPreview(),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ],
-            )
-          : Column(
-              children: [
-                //Container for the Remote video
-                Expanded(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      _remoteVideo(),
-                      //Container for the local video
-                      if (_isJoined)
-                        Positioned(
-                          bottom: 20,
-                          right: 20,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: SizedBox(
-                              height: 150,
-                              width: 100,
-                              child: _localPreview(),
-                            ),
+          // Button Row
+          Expanded(
+              child: Align(
+                  alignment: FractionalOffset.bottomCenter,
+                  child: Padding(
+                      padding: const EdgeInsets.only(bottom: 50.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          (!_isJoined)
+                              ? Container()
+                              : GestureDetector(
+                                  onTap: () {
+                                    //MUTE UNMUTE
+                                    muteUnmute();
+                                  },
+                                  child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: const BoxDecoration(
+                                          color: Colors.grey,
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(20))),
+                                      child: Image.asset(
+                                        (isMute)
+                                            ? 'images/unmute.png'
+                                            : 'images/mute.png',
+                                        height: 20,
+                                        width: 20,
+                                        color: Colors.white,
+                                      ))),
+                          (!_isJoined)
+                              ? Container()
+                              : const SizedBox(
+                                  width: 20,
+                                ),
+                          (!_isJoined)
+                              ? Container()
+                              : GestureDetector(
+                                  onTap: () {
+                                    //SPEAKER
+                                    agoraEngine
+                                        .setEnableSpeakerphone(!isSpeakerOn);
+                                    setState(() {
+                                      isSpeakerOn = !isSpeakerOn;
+                                    });
+                                  },
+                                  child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: const BoxDecoration(
+                                          color: Colors.grey,
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(20))),
+                                      child: Image.asset(
+                                        (isSpeakerOn)
+                                            ? 'images/loud-speaker.png'
+                                            : 'images/speaker_off.png',
+                                        height: 20,
+                                        width: 20,
+                                        color: Colors.white,
+                                      ))),
+                          const SizedBox(
+                            width: 20,
                           ),
-                        ),
-                    ],
-                  ),
-                ),
-                // Button Row
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _isJoined ? null : () => {join()},
-                          child: const Text("Join"),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _isJoined ? () => {leave()} : null,
-                          child: const Text("Leave"),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+                          GestureDetector(
+                              onTap: () {
+                                (_isJoined) ? leave() : join();
+                              },
+                              child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                      color: (_isJoined)
+                                          ? Colors.red
+                                          : Colors.green,
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(20))),
+                                  child: Image.asset(
+                                    (!_isJoined)
+                                        ? 'images/phone_call.png'
+                                        : 'images/call-end.png',
+                                    height: 20,
+                                    width: 20,
+                                    color: Colors.white,
+                                  ))),
+                        ],
+                      )))),
+        ],
+      ),
     );
   }
 }

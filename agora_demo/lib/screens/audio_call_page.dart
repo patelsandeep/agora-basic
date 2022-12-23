@@ -17,6 +17,7 @@ class _AudioCallPageState extends State<AudioCallPage> {
   int? _remoteUid; // uid of the remote user
   bool _isJoined = false; // Indicates if the local user has joined the channel
   late RtcEngine agoraEngine; // Agora engine instance
+  bool isMute = false, isSpeakerOn = false;
 
   showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -86,11 +87,23 @@ class _AudioCallPageState extends State<AudioCallPage> {
     agoraEngine.leaveChannel();
   }
 
+  muteUnmute() {
+    if (isMute) {
+      agoraEngine.enableAudio();
+    } else {
+      agoraEngine.disableAudio();
+    }
+
+    setState(() {
+      isMute = !isMute;
+    });
+  }
+
   Widget _status() {
     String statusText;
 
     if (!_isJoined) {
-      statusText = 'Join a channel';
+      statusText = '';
     } else if (_remoteUid == null) {
       statusText = 'Waiting for a remote user to join...';
     } else {
@@ -108,28 +121,105 @@ class _AudioCallPageState extends State<AudioCallPage> {
         appBar: AppBar(
           title: const Text('Voice Calling'),
         ),
-        body: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        body: Column(
           children: [
             // Status text
-            SizedBox(height: 40, child: Center(child: _status())),
-            // Button Row
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: ElevatedButton(
-                    child: const Text("Join"),
-                    onPressed: () => {join()},
-                  ),
+            Expanded(
+                child: Column(
+              children: [
+                const SizedBox(
+                  height: 50,
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    child: const Text("Leave"),
-                    onPressed: () => {leave()},
-                  ),
+                Image.asset(
+                  'images/user.png',
+                  height: 120,
+                  width: 120,
                 ),
+                const SizedBox(
+                  height: 10,
+                ),
+                // const Text("Calling...")
+                SizedBox(height: 40, child: Center(child: _status())),
               ],
+            )),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                (!_isJoined)
+                    ? Container()
+                    : GestureDetector(
+                        onTap: () {
+                          //MUTE UNMUTE
+                          muteUnmute();
+                        },
+                        child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: const BoxDecoration(
+                                color: Colors.grey,
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20))),
+                            child: Image.asset(
+                              (isMute)
+                                  ? 'images/unmute.png'
+                                  : 'images/mute.png',
+                              height: 20,
+                              width: 20,
+                              color: Colors.white,
+                            ))),
+                (!_isJoined)
+                    ? Container()
+                    : const SizedBox(
+                        width: 20,
+                      ),
+                (!_isJoined)
+                    ? Container()
+                    : GestureDetector(
+                        onTap: () {
+                          //SPEAKER
+                          agoraEngine.setEnableSpeakerphone(!isSpeakerOn);
+                          setState(() {
+                            isSpeakerOn = !isSpeakerOn;
+                          });
+                        },
+                        child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: const BoxDecoration(
+                                color: Colors.grey,
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20))),
+                            child: Image.asset(
+                              (isSpeakerOn)
+                                  ? 'images/loud-speaker.png'
+                                  : 'images/speaker_off.png',
+                              height: 20,
+                              width: 20,
+                              color: Colors.white,
+                            ))),
+                const SizedBox(
+                  width: 20,
+                ),
+                GestureDetector(
+                    onTap: () {
+                      (_isJoined) ? leave() : join();
+                    },
+                    child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                            color: (_isJoined) ? Colors.red : Colors.green,
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(20))),
+                        child: Image.asset(
+                          (!_isJoined)
+                              ? 'images/phone_call.png'
+                              : 'images/call-end.png',
+                          height: 20,
+                          width: 20,
+                          color: Colors.white,
+                        ))),
+              ],
+            ),
+            const SizedBox(
+              height: 50,
             ),
           ],
         ));

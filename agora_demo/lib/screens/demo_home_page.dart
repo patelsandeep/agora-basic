@@ -23,59 +23,120 @@ class _DemoHomePageState extends State<DemoHomePage> {
     super.dispose();
   }
 
-  Widget button(title, onPressItem) {
-    return ElevatedButton(
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 20.0),
-      ),
-      onPressed: () {
-        onPressItem();
-      },
-    );
+  Widget item(String title, img, onPressItem, iconColor) {
+    return Expanded(
+        child: GestureDetector(
+            onTap: () {
+              onPressItem();
+            },
+            child: Container(
+                height: 100,
+                padding: const EdgeInsets.all(10),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.blue,
+                    ),
+                    borderRadius: const BorderRadius.all(Radius.circular(4))),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      img,
+                      color: iconColor,
+                      size: 30,
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      title,
+                      style: const TextStyle(color: Colors.black),
+                    )
+                  ],
+                ))));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Agora Demo'),
-      ),
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            button(
-                'Live Stream',
-                () => {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => const VideoStreamPage()))
-                    }),
-            button(
-                'Video Call',
-                () => {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => const VideoCallPage())),
-                    }),
-            button(
-                'Audio Call',
-                () => {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => const AudioCallPage())),
-                    }),
-            button(
-                'Agora Chat',
-                () => {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) =>
-                              const AgoraChatPage(title: 'Agora Chat'))),
-                    }),
-            button(
-                'Chat GPT',
-                () => {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => const GptChatAPIDemo())),
-                    }),
+            Row(
+              children: [
+                const SizedBox(
+                  width: 10,
+                ),
+                item(
+                    'Live Stream',
+                    Icons.live_tv_sharp,
+                    () => {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => const VideoStreamPage()))
+                        },
+                    Colors.red),
+                item(
+                    'Video Call',
+                    Icons.video_call,
+                    () => {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => const VideoCallPage()))
+                        },
+                    Colors.blue),
+                const SizedBox(
+                  width: 10,
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                const SizedBox(
+                  width: 10,
+                ),
+                item(
+                    'Audio Call',
+                    Icons.call,
+                    () => {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => const AudioCallPage()))
+                        },
+                    Colors.green),
+                item(
+                    'Agora Chat',
+                    Icons.chat,
+                    () => {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) =>
+                                  const AgoraChatPage(title: 'Agora Chat')))
+                        },
+                    Colors.green),
+                const SizedBox(
+                  width: 10,
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                const SizedBox(
+                  width: 10,
+                ),
+                item(
+                    'Chat GPT',
+                    Icons.chat,
+                    () => {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => const GptChatAPIDemo()))
+                        },
+                    Colors.green),
+                const SizedBox(
+                  width: 10,
+                ),
+              ],
+            ),
           ],
         ),
       ),
