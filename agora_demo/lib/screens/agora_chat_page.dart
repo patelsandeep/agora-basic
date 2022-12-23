@@ -4,9 +4,12 @@ import 'package:agora_chat_sdk/agora_chat_sdk.dart';
 
 class AgoraChatConfig {
   static const String appKey = "61419896#1046071";
-  static const String userId = "1";
+  // static const String userId = "1";
+  static const String userId = "2";
   static const String agoraToken =
-      "007eJxTYMjcY2i48uHZzgXpEsfmKx2auyGykqnp4s3yJ9pnFRxvyxoqMJilWhgnJ6eYmJsnmZgYJidbJlkaGZmamZqZJSVaJholcXxZlNwQyMgwJeMnAyMDKxAzMoD4KgwmBokWZiamBrrmaWbmuoaGqSm6FkmmaboGSYYWiclmicbGyWYAuhsoBw==";
+      "007eJxTYFjdu6dY5F7u9qWzLgd9lDh7x2/uq0PSmVeOPw6btudebMpZBQazVAvj5OQUE3PzJBMTw+RkyyRLIyNTM1Mzs6REy0SjJP2GpckNgYwMfDwuTIwMrAyMQAjiqzCYJKWkmiWmGuiap5mZ6xoapqboWiQZJOmaGxpbWCSZGJomppoCAMqjKdI=";
+  // static const String agoraToken =
+  //     "007eJxTYGhdWHqo671r9Pvzifrq1kdNn+ifNYpss7Epu6z4oolVbJsCg1mqhXFycoqJuXmSiYlhcrJlkqWRkamZqZlZUqJlolFSY/3S5IZARoa1yxazMjKwMjACIYivwmBikGhhZmJqoGueZmaua2iYmqJrkWSapmuQZGiRmGyWaGycbAYAbQwnSQ==";
 }
 
 class AgoraChatPage extends StatefulWidget {
@@ -20,7 +23,7 @@ class AgoraChatPage extends StatefulWidget {
 
 class _AgoraChatPageState extends State<AgoraChatPage> {
   ScrollController scrollController = ScrollController();
-  String? _messageContent, _chatId;
+  String? _messageContent, _chatId = "1";
   final List<String> _logText = [];
 
   @override
@@ -45,65 +48,9 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
       body: Container(
         padding: const EdgeInsets.only(left: 10, right: 10),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.max,
           children: [
-            const SizedBox(height: 10),
-            const Text("login userId: ${AgoraChatConfig.userId}"),
-            const Text("agoraToken: ${chatUserToken}"),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: TextButton(
-                    onPressed: _signIn,
-                    child: const Text("SIGN IN"),
-                    style: ButtonStyle(
-                      foregroundColor: MaterialStateProperty.all(Colors.white),
-                      backgroundColor:
-                          MaterialStateProperty.all(Colors.lightBlue),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextButton(
-                    onPressed: _signOut,
-                    child: const Text("SIGN OUT"),
-                    style: ButtonStyle(
-                      foregroundColor: MaterialStateProperty.all(Colors.white),
-                      backgroundColor:
-                          MaterialStateProperty.all(Colors.lightBlue),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              decoration: const InputDecoration(
-                hintText: "Enter recipient's userId",
-              ),
-              onChanged: (chatId) => _chatId = chatId,
-            ),
-            TextField(
-              decoration: const InputDecoration(
-                hintText: "Enter message",
-              ),
-              onChanged: (msg) => _messageContent = msg,
-            ),
-            const SizedBox(height: 10),
-            TextButton(
-              onPressed: _sendMessage,
-              child: const Text("SEND TEXT"),
-              style: ButtonStyle(
-                foregroundColor: MaterialStateProperty.all(Colors.white),
-                backgroundColor: MaterialStateProperty.all(Colors.lightBlue),
-              ),
-            ),
-            Flexible(
+            const SizedBox(height: 20),
+            Expanded(
               child: ListView.builder(
                 controller: scrollController,
                 itemBuilder: (_, index) {
@@ -112,6 +59,21 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
                 itemCount: _logText.length,
               ),
             ),
+            Row(
+              children: [
+                Expanded(
+                    child: TextField(
+                  decoration: const InputDecoration(
+                    hintText: "Enter message",
+                  ),
+                  onChanged: (msg) => _messageContent = msg,
+                )),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: _sendMessage,
+                )
+              ],
+            )
           ],
         ),
       ),
@@ -124,6 +86,7 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
       autoLogin: true,
     );
     await ChatClient.getInstance.init(options);
+    _signIn();
   }
 
   void _addChatListener() {
@@ -160,7 +123,8 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
       _addLogToConsole("single chat id or message content is null");
       return;
     }
-
+    print(_messageContent);
+    print(_chatId);
     var msg = ChatMessage.createTxtSendMessage(
       targetId: _chatId!,
       content: _messageContent!,
