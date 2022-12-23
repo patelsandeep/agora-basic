@@ -9,3 +9,7 @@ const String token =
 
 const String chatUserToken =
     "007eJxTYMjcY2i48uHZzgXpEsfmKx2auyGykqnp4s3yJ9pnFRxvyxoqMJilWhgnJ6eYmJsnmZgYJidbJlkaGZmamZqZJSVaJholcXxZlNwQyMgwJeMnAyMDKxAzMoD4KgwmBokWZiamBrrmaWbmuoaGqSm6FkmmaboGSYYWiclmicbGyWYAuhsoBw==";
+const String baseUrl = "https://api.openai.com/v1/";
+const String apiKey =
+    "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"; //Add api key here
+const String chatUrl = "https://chat.openai.com/chat";

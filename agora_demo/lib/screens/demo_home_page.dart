@@ -1,4 +1,5 @@
 import 'package:agora_demo/screens/agora_chat_page.dart';
+import 'package:agora_demo/screens/gpt_chat_api_demo.dart';
 import 'package:agora_demo/screens/video_call_page.dart';
 import 'package:agora_demo/screens/video_stream_page.dart';
 import 'package:flutter/material.dart';
@@ -68,6 +69,12 @@ class _DemoHomePageState extends State<DemoHomePage> {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) =>
                               const AgoraChatPage(title: 'Agora Chat'))),
+                    }),
+            button(
+                'Chat GPT',
+                () => {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const GptChatAPIDemo())),
                     }),
           ],
         ),

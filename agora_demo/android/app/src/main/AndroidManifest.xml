@@ -13,6 +13,16 @@
   <uses-permission android:name="android.permission.WAKE_LOCK" />
   <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
     tools:ignore="ProtectedPermissions" />
+
+     <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+
+
    <application
         android:label="agora_demo"
         android:name="${applicationName}"

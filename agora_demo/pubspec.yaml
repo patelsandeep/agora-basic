@@ -38,7 +38,10 @@ dependencies:
   firebase_core: ^2.4.0
   firebase_auth: ^4.2.1
   flutter_facebook_auth: ^5.0.6
-  
+  speech_to_text: 
+  translator:
+  text_to_speech: 
+  flutter_chatgpt_api: ^1.0.0
   # sign_in_with_apple: ^4.2.0
 
   # The following adds the Cupertino Icons font to your application.
