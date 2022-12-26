@@ -1,6 +1,7 @@
 import 'package:agora_chat_sdk/agora_chat_sdk.dart';
 import 'package:agora_demo/screens/widget/chat_message_widget.dart';
 import 'package:agora_demo/utils/agora_chat_config.dart';
+import 'package:agora_demo/utils/logger.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chatgpt_api/flutter_chatgpt_api.dart' as chatgpt;
@@ -18,7 +19,7 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
   String? _messageContent;
-  final String _chatId = "1";
+  final String _chatId = "2";
   final List<chatgpt.ChatMessage> _messages = [];
 
   @override
@@ -231,8 +232,6 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
   }
 
   void _addLogToConsole(String log) {
-    if (kDebugMode) {
-      print((DateTime.now().toString().split(".").first) + (": ") + log);
-    }
+    Logger.log((DateTime.now().toString().split(".").first) + (": ") + log);
   }
 }

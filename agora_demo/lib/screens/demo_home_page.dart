@@ -1,9 +1,9 @@
-import 'package:agora_demo/screens/agora_chat_page.dart';
-import 'package:agora_demo/screens/gpt_chat_api_demo.dart';
-import 'package:agora_demo/screens/video_call_page.dart';
-import 'package:agora_demo/screens/video_stream_page.dart';
+import 'package:agora_demo/screens/agora/chat/agora_chat_page.dart';
+import 'package:agora_demo/screens/chat_gpt/gpt_chat_api_demo.dart';
+import 'package:agora_demo/screens/agora/video_call/video_call_page.dart';
+import 'package:agora_demo/screens/agora/video_stream/video_stream_page.dart';
 import 'package:flutter/material.dart';
-import 'audio_call_page.dart';
+import 'agora/audio_call/audio_call_page.dart';
 
 class DemoHomePage extends StatefulWidget {
   const DemoHomePage({super.key});
@@ -132,14 +132,6 @@ class _DemoHomePageState extends State<DemoHomePage> {
                               builder: (_) => const GptChatAPIDemo()))
                         },
                     Colors.green),
-                // item(
-                //     'Agora + Chat GPT',
-                //     Icons.chat,
-                //     () => {
-                //           // Navigator.of(context).push(MaterialPageRoute(
-                //           //     builder: (_) => const GptChatAPIDemo()))
-                //         },
-                //     Colors.green),
                 const SizedBox(
                   width: 10,
                 ),

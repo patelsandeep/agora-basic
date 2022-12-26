@@ -6,7 +6,7 @@ import 'package:speech_to_text/speech_to_text.dart';
 import 'package:text_to_speech/text_to_speech.dart';
 import 'package:translator/translator.dart';
 
-import '../api/api.dart';
+import '../../api/api.dart';
 
 class GptChatAPIDemo extends StatefulWidget {
   const GptChatAPIDemo({

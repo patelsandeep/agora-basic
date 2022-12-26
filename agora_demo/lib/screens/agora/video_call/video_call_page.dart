@@ -1,4 +1,5 @@
 import 'package:agora_demo/utils/constants.dart';
+import 'package:agora_demo/utils/logger.dart';
 import 'package:agora_rtc_engine/rtc_engine.dart';
 import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
 import 'package:agora_rtc_engine/rtc_remote_view.dart' as rtc_remote_view;
@@ -102,7 +103,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
       await agoraEngine.joinChannel(
           token, channelName, '', uid, options = options);
     } catch (e) {
-      if (kDebugMode) print(e);
+      Logger.log(e);
     }
   }
 
