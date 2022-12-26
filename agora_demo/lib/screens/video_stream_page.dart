@@ -76,7 +76,8 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
     if (!kIsWeb) await [Permission.microphone, Permission.camera].request();
 
     //create an instance of the Agora engine
-    agoraEngine = await RtcEngine.createWithContext(RtcEngineContext(appId));
+    agoraEngine =
+        await RtcEngine.createWithContext(RtcEngineContext(agoraAppId));
 
     // Register the event handler
     agoraEngine.setEventHandler(

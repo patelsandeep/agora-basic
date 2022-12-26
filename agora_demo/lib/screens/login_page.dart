@@ -1,4 +1,5 @@
 import 'package:agora_demo/screens/demo_home_page.dart';
+import 'package:agora_demo/utils/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
@@ -48,33 +49,18 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> signOutGoogle() async {
-    // GoogleSignIn googleSignIn;
-    // if (Platform.) {
-    GoogleSignIn googleSignIn = GoogleSignIn(
-        clientId:
-            "1016551248064-0h0h49fo3g9uqqgbujjjcj0p6efm0kqd.apps.googleusercontent.com");
-    // } else {
-    //   googleSignIn = GoogleSignIn();
-    // }
+    GoogleSignIn(clientId: googleClientId);
     try {
       await FirebaseAuth.instance.signOut();
     } catch (e) {
-      print(e);
+      // print(e);
     }
   }
 
   Future signInWithGoogle({required BuildContext context}) async {
     FirebaseAuth auth = FirebaseAuth.instance;
     User? user;
-
-    // GoogleSignIn googleSignIn;
-    // if (Platform.isMacOS || Platform.isWindows) {
-    GoogleSignIn googleSignIn = GoogleSignIn(
-        clientId:
-            "1016551248064-0h0h49fo3g9uqqgbujjjcj0p6efm0kqd.apps.googleusercontent.com");
-    // } else {
-    //   googleSignIn = GoogleSignIn();
-    // }
+    GoogleSignIn googleSignIn = GoogleSignIn(clientId: googleClientId);
 
     final GoogleSignInAccount? googleSignInAccount =
         await googleSignIn.signIn();

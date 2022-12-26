@@ -47,7 +47,8 @@ class _VideoCallPageState extends State<VideoCallPage> {
     if (!kIsWeb) await [Permission.microphone, Permission.camera].request();
 
     //create an instance of the Agora engine
-    agoraEngine = await RtcEngine.createWithContext(RtcEngineContext(appId));
+    agoraEngine =
+        await RtcEngine.createWithContext(RtcEngineContext(agoraAppId));
 
     // Register the event handler
     agoraEngine.setEventHandler(
@@ -118,7 +119,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
 // Display remote user's video
   Widget _remoteVideo() {
     if (_remoteUid != null) {
-      print('_remoteUid = $_remoteUid');
+      // print('_remoteUid = $_remoteUid');
       return _isRenderSurfaceView
           ? rtc_remote_view.SurfaceView(
               uid: _remoteUid!,

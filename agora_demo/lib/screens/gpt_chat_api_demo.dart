@@ -19,7 +19,6 @@ class GptChatAPIDemo extends StatefulWidget {
 
 class _GptChatAPIDemoState extends State<GptChatAPIDemo> {
   final SpeechToText _speechToText = SpeechToText();
-  bool _speechEnabled = false;
   String _lastWords = '';
   String _convertedWords = '';
   final _textController = TextEditingController();
@@ -35,7 +34,7 @@ class _GptChatAPIDemoState extends State<GptChatAPIDemo> {
 
   /// This has to happen only once per app
   void _initSpeech() async {
-    _speechEnabled = await _speechToText.initialize();
+    await _speechToText.initialize();
     setState(() {});
   }
 
@@ -46,7 +45,6 @@ class _GptChatAPIDemoState extends State<GptChatAPIDemo> {
 
   /// Each time to start a speech recognition session
   void _startListening() async {
-    print("_startListening");
     setState(() => _convertedWords = '');
     await _speechToText.listen(
       onResult: _onSpeechResult,
@@ -75,10 +73,7 @@ class _GptChatAPIDemoState extends State<GptChatAPIDemo> {
   }
 
   Future<void> translateText(String recognizedWords) async {
-    final translator = GoogleTranslator();
-    final input = recognizedWords;
-    print(input);
-    searchGPT(input);
+    searchGPT(recognizedWords);
   }
 
   searchGPT(String text) async {
@@ -99,24 +94,26 @@ class _GptChatAPIDemoState extends State<GptChatAPIDemo> {
 
     var newMessage = await API.shared.getMessage(input);
 
-    GoogleTranslator()
-        .translate(newMessage['choices'][0]['text'], from: 'en', to: 'gu')
-        .then((result) {
-      print("RESULT :: $result");
-      setState(() => _convertedWords = result.toString());
-      print("CONVERTED WORDS :: $_convertedWords");
-      TextToSpeech tts = TextToSpeech();
-      tts.setVolume(1);
-      tts.setRate(1);
-      tts.setPitch(1);
-      tts.setLanguage('gu');
-      tts.speak(_convertedWords);
-    });
+    //To speak result
+
+    // GoogleTranslator()
+    //     .translate(newMessage['choices'][0]['text'], from: 'en', to: 'hi')
+    //     .then((result) {
+    //   setState(() => _convertedWords = result.toString());
+    //   TextToSpeech tts = TextToSpeech();
+    //   tts.setVolume(1);
+    //   tts.setRate(1);
+    //   tts.setPitch(1);
+    //   tts.setLanguage('hi');
+    //   tts.speak(_convertedWords);
+    // });
+
     setState(() {
       isLoading = false;
       _messages.add(
         ChatMessage(
-          text: newMessage['choices'][0]['text'],
+          text: newMessage['choices'][0]['text']
+              .replaceFirst(RegExp('\r\n|\r|\n'), ''),
           chatMessageType: ChatMessageType.bot,
         ),
       );
@@ -175,7 +172,7 @@ class _GptChatAPIDemoState extends State<GptChatAPIDemo> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('text-davinci-003'),
+        title: const Text('Chat GPT'),
       ),
       body: SafeArea(
         child: Padding(

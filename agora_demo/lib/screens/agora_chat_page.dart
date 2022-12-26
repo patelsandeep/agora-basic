@@ -1,18 +1,9 @@
 import 'package:agora_chat_sdk/agora_chat_sdk.dart';
 import 'package:agora_demo/screens/widget/chat_message_widget.dart';
+import 'package:agora_demo/utils/agora_chat_config.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chatgpt_api/flutter_chatgpt_api.dart' as chatgpt;
-
-class AgoraChatConfig {
-  static const String listenerId = "1";
-  static const String appKey = "61419896#1046071";
-  // static const String userId = "1";
-  static const String userId = "2";
-  static const String agoraToken =
-      "007eJxTYFjdu6dY5F7u9qWzLgd9lDh7x2/uq0PSmVeOPw6btudebMpZBQazVAvj5OQUE3PzJBMTw+RkyyRLIyNTM1Mzs6REy0SjJP2GpckNgYwMfDwuTIwMrAyMQAjiqzCYJKWkmiWmGuiap5mZ6xoapqboWiQZJOmaGxpbWCSZGJomppoCAMqjKdI=";
-  // static const String agoraToken =
-  //     "007eJxTYGhdWHqo671r9Pvzifrq1kdNn+ifNYpss7Epu6z4oolVbJsCg1mqhXFycoqJuXmSiYlhcrJlkqWRkamZqZlZUqJlolFSY/3S5IZARoa1yxazMjKwMjACIYivwmBikGhhZmJqoGueZmaua2iYmqJrkWSapmuQZGiRmGyWaGycbAYAbQwnSQ==";
-}
 
 class AgoraChatPage extends StatefulWidget {
   const AgoraChatPage({Key? key, required this.title}) : super(key: key);
@@ -26,7 +17,8 @@ class AgoraChatPage extends StatefulWidget {
 class _AgoraChatPageState extends State<AgoraChatPage> {
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
-  String? _messageContent, _chatId = "1";
+  String? _messageContent;
+  final String _chatId = "1";
   final List<chatgpt.ChatMessage> _messages = [];
 
   @override
@@ -136,13 +128,13 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
   // }
 
   void _sendMessage() async {
-    if (_chatId == null || _messageContent == null) {
+    if (_chatId.isEmpty || _messageContent == null) {
       _addLogToConsole("single chat id or message content is null");
       return;
     }
 
     var msg = ChatMessage.createTxtSendMessage(
-      targetId: _chatId!,
+      targetId: _chatId,
       content: _messageContent!,
     );
     msg.setMessageStatusCallBack(MessageStatusCallBack(
@@ -172,7 +164,6 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
   }
 
   void onMessagesReceived(List<ChatMessage> messages) {
-    print("onMessagesReceived");
     for (var msg in messages) {
       switch (msg.body.type) {
         case MessageType.TXT:
@@ -240,10 +231,8 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
   }
 
   void _addLogToConsole(String log) {
-    print(_timeString + ": " + log);
-  }
-
-  String get _timeString {
-    return DateTime.now().toString().split(".").first;
+    if (kDebugMode) {
+      print((DateTime.now().toString().split(".").first) + (": ") + log);
+    }
   }
 }

@@ -43,7 +43,8 @@ class _AudioCallPageState extends State<AudioCallPage> {
     if (!kIsWeb) await [Permission.microphone].request();
 
     //create an instance of the Agora engine
-    agoraEngine = await RtcEngine.createWithContext(RtcEngineContext(appId));
+    agoraEngine =
+        await RtcEngine.createWithContext(RtcEngineContext(agoraAppId));
 
     // Register the event handler
     agoraEngine.setEventHandler(
