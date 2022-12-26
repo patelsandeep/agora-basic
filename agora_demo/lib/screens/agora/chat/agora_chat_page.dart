@@ -2,7 +2,6 @@ import 'package:agora_chat_sdk/agora_chat_sdk.dart';
 import 'package:agora_demo/screens/widget/chat_message_widget.dart';
 import 'package:agora_demo/utils/agora_chat_config.dart';
 import 'package:agora_demo/utils/logger.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chatgpt_api/flutter_chatgpt_api.dart' as chatgpt;
 
