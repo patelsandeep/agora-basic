@@ -1,6 +1,8 @@
 import 'package:agora_demo/utils/constants.dart';
 import 'package:agora_demo/utils/logger.dart';
-import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:agora_rtc_engine/rtc_engine.dart';
+import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
+import 'package:agora_rtc_engine/rtc_remote_view.dart' as rtc_remote_view;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -13,7 +15,7 @@ class VideoCallPage extends StatefulWidget {
 }
 
 class _VideoCallPageState extends State<VideoCallPage> {
-  int uid = 0; // uid of the local user
+  int uid = 1; // uid of the local user
 
   int? _remoteUid; // uid of the remote user
   bool _isJoined = false; // Indicates if the local user has joined the channel
@@ -37,58 +39,51 @@ class _VideoCallPageState extends State<VideoCallPage> {
   @override
   void dispose() async {
     leave();
-    await agoraEngine.release();
+    agoraEngine.destroy();
     super.dispose();
   }
 
   Future<void> setupVideoSDKEngine() async {
     // retrieve or request camera and microphone permissions
-    await [Permission.microphone, Permission.camera].request();
+    if (!kIsWeb) await [Permission.microphone, Permission.camera].request();
 
     //create an instance of the Agora engine
-    agoraEngine = createAgoraRtcEngine();
-    await agoraEngine.initialize(const RtcEngineContext(
-        appId: agoraAppId
-    ));
-
-    await agoraEngine.enableVideo();
+    agoraEngine =
+        await RtcEngine.createWithContext(RtcEngineContext(agoraAppId));
 
     // Register the event handler
-    agoraEngine.registerEventHandler(
+    agoraEngine.setEventHandler(
       RtcEngineEventHandler(
-        onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
-          showMessage("Local user uid:${connection.localUid} joined the channel");
-          setState(() {
-            _isJoined = true;
-          });
+        joinChannelSuccess: (channel, uid, elapsed) {
+          showMessage("Local user uid:$uid joined the channel");
+          setState(() => _isJoined = true);
         },
-        onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
+        userJoined: (int remoteUid, int elapsed) {
           showMessage("Remote user uid:$remoteUid joined the channel");
-          setState(() {
-            _remoteUid = remoteUid;
-          });
+          setState(() => _remoteUid = remoteUid);
         },
-        onUserOffline: (RtcConnection connection, int remoteUid,
-            UserOfflineReasonType reason) {
-          showMessage("Remote user uid:$remoteUid left the channel");
-          setState(() {
-            _remoteUid = null;
-          });
+        userOffline: (uid, reason) {
+          showMessage("Remote user uid:$uid left the channel");
+          setState(() => _remoteUid = null);
         },
       ),
     );
-  }
 
+    // Set Client Role & Channel Profile
+    await agoraEngine.setChannelProfile(ChannelProfile.LiveBroadcasting);
+    await agoraEngine.setClientRole(ClientRole.Broadcaster);
+  }
 
   // Display local video preview
   Widget _localPreview() {
     if (_isJoined) {
-      return AgoraVideoView(
-        controller: VideoViewController(
-          rtcEngine: agoraEngine,
-          canvas: VideoCanvas(uid: 0),
-        ),
-      );
+      return _isRenderSurfaceView
+          ? const rtc_local_view.SurfaceView(
+              channelId: channelName,
+            )
+          : const rtc_local_view.TextureView(
+              channelId: channelName,
+            );
     } else {
       return const Text(
         'Join a channel',
@@ -97,23 +92,20 @@ class _VideoCallPageState extends State<VideoCallPage> {
     }
   }
 
-  void  join() async {
+  void join() async {
+    await agoraEngine.enableVideo();
     await agoraEngine.startPreview();
 
-    // Set channel options including the client role and channel profile
-    ChannelMediaOptions options = const ChannelMediaOptions(
-      clientRoleType: ClientRoleType.clientRoleBroadcaster,
-      channelProfile: ChannelProfileType.channelProfileCommunication,
-    );
+    // Set channel options
+    ChannelMediaOptions options = ChannelMediaOptions();
 
-    await agoraEngine.joinChannel(
-      token: token,
-      channelId: channelName,
-      options: options,
-      uid: uid,
-    );
+    try {
+      await agoraEngine.joinChannel(
+          token, channelName, '', uid, options = options);
+    } catch (e) {
+      Logger.log(e);
+    }
   }
-
 
   Future<void> leave() async {
     await agoraEngine.disableVideo();
@@ -128,20 +120,16 @@ class _VideoCallPageState extends State<VideoCallPage> {
 // Display remote user's video
   Widget _remoteVideo() {
     if (_remoteUid != null) {
-      return AgoraVideoView(
-        controller: VideoViewController.remote(
-          rtcEngine: agoraEngine,
-          canvas: VideoCanvas(uid: _remoteUid),
-          connection: RtcConnection(channelId: channelName),
-        ),
-      );
+      // print('_remoteUid = $_remoteUid');
+      return _isRenderSurfaceView
+          ? rtc_remote_view.SurfaceView(
+              uid: _remoteUid!,
+              channelId: channelName,
+            )
+          : rtc_remote_view.TextureView(
+              uid: _remoteUid!, channelId: channelName);
     } else {
-      String msg = '';
-      if (_isJoined) msg = 'Waiting for a remote user to join';
-      return Text(
-        msg,
-        textAlign: TextAlign.center,
-      );
+      return Container();
     }
   }
 
@@ -203,110 +191,119 @@ class _VideoCallPageState extends State<VideoCallPage> {
                     ),
                   ],
                 )
-              : Stack(
-                alignment: Alignment.center,
-                children: [
-                  _remoteVideo(),
-                  //Container for the local video
-                  if (_isJoined)
-                    Positioned(
-                      top: 20,
-                      right: 20,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: SizedBox(
-                          height: 150,
-                          width: 100,
-                          child: _localPreview(),
-                        ),
+              : Column(
+                  children: [
+                    //Container for the Remote video
+                    Expanded(
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          _remoteVideo(),
+                          //Container for the local video
+                          if (_isJoined)
+                            Positioned(
+                              top: 20,
+                              right: 20,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: SizedBox(
+                                  height: 150,
+                                  width: 100,
+                                  child: _localPreview(),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                ],
-              ),
-          Align(
-              alignment: FractionalOffset.bottomCenter,
-              child: Padding(
-                  padding: const EdgeInsets.only(bottom: 50.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      (!_isJoined)
-                          ? Container()
-                          : GestureDetector(
+                  ],
+                ),
+          // Button Row
+          Expanded(
+              child: Align(
+                  alignment: FractionalOffset.bottomCenter,
+                  child: Padding(
+                      padding: const EdgeInsets.only(bottom: 50.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          (!_isJoined)
+                              ? Container()
+                              : GestureDetector(
+                                  onTap: () {
+                                    //MUTE UNMUTE
+                                    muteUnmute();
+                                  },
+                                  child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: const BoxDecoration(
+                                          color: Colors.grey,
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(20))),
+                                      child: Image.asset(
+                                        (!isMute)
+                                            ? 'images/unmute.png'
+                                            : 'images/mute.png',
+                                        height: 20,
+                                        width: 20,
+                                        color: Colors.white,
+                                      ))),
+                          (!_isJoined)
+                              ? Container()
+                              : const SizedBox(
+                                  width: 20,
+                                ),
+                          (!_isJoined)
+                              ? Container()
+                              : GestureDetector(
+                                  onTap: () {
+                                    //SPEAKER
+                                    agoraEngine
+                                        .setEnableSpeakerphone(!isSpeakerOn);
+                                    setState(() {
+                                      isSpeakerOn = !isSpeakerOn;
+                                    });
+                                  },
+                                  child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: const BoxDecoration(
+                                          color: Colors.grey,
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(20))),
+                                      child: Image.asset(
+                                        (isSpeakerOn)
+                                            ? 'images/loud-speaker.png'
+                                            : 'images/speaker_off.png',
+                                        height: 20,
+                                        width: 20,
+                                        color: Colors.white,
+                                      ))),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          GestureDetector(
+                              //CONNECT DISCONNECT CALL
                               onTap: () {
-                                //MUTE UNMUTE
-                                muteUnmute();
+                                (_isJoined) ? leave() : join();
                               },
                               child: Container(
                                   padding: const EdgeInsets.all(10),
-                                  decoration: const BoxDecoration(
-                                      color: Colors.grey,
-                                      borderRadius: BorderRadius.all(
+                                  decoration: BoxDecoration(
+                                      color: (_isJoined)
+                                          ? Colors.red
+                                          : Colors.green,
+                                      borderRadius: const BorderRadius.all(
                                           Radius.circular(20))),
                                   child: Image.asset(
-                                    (!isMute)
-                                        ? 'images/unmute.png'
-                                        : 'images/mute.png',
+                                    (!_isJoined)
+                                        ? 'images/phone_call.png'
+                                        : 'images/call-end.png',
                                     height: 20,
                                     width: 20,
                                     color: Colors.white,
                                   ))),
-                      (!_isJoined)
-                          ? Container()
-                          : const SizedBox(
-                              width: 20,
-                            ),
-                      (!_isJoined)
-                          ? Container()
-                          : GestureDetector(
-                              onTap: () {
-                                //SPEAKER
-                                agoraEngine
-                                    .setEnableSpeakerphone(!isSpeakerOn);
-                                setState(() {
-                                  isSpeakerOn = !isSpeakerOn;
-                                });
-                              },
-                              child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: const BoxDecoration(
-                                      color: Colors.grey,
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(20))),
-                                  child: Image.asset(
-                                    (isSpeakerOn)
-                                        ? 'images/loud-speaker.png'
-                                        : 'images/speaker_off.png',
-                                    height: 20,
-                                    width: 20,
-                                    color: Colors.white,
-                                  ))),
-                      const SizedBox(
-                        width: 20,
-                      ),
-                      GestureDetector(
-                          //CONNECT DISCONNECT CALL
-                          onTap: () {
-                            (_isJoined) ? leave() : join();
-                          },
-                          child: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                  color: (_isJoined)
-                                      ? Colors.red
-                                      : Colors.green,
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(20))),
-                              child: Image.asset(
-                                (!_isJoined)
-                                    ? 'images/phone_call.png'
-                                    : 'images/call-end.png',
-                                height: 20,
-                                width: 20,
-                                color: Colors.white,
-                              ))),
-                    ],
-                  ))),
+                        ],
+                      )))),
         ],
       ),
     );

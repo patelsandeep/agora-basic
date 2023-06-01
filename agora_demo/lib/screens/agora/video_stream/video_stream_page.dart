@@ -1,5 +1,7 @@
 import 'package:agora_demo/utils/constants.dart';
-import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:agora_rtc_engine/rtc_engine.dart';
+import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
+import 'package:agora_rtc_engine/rtc_remote_view.dart' as rtc_remote_view;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -12,7 +14,7 @@ class VideoStreamPage extends StatefulWidget {
 }
 
 class _VideoStreamPageState extends State<VideoStreamPage> {
-  int uid = 0; // uid of the local user
+  int uid = 1; // uid of the local user
 
   int? _remoteUid; // uid of the remote user
   bool _isJoined = false; // Indicates if the local user has joined the channel
@@ -20,21 +22,6 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
       true; // Indicates whether the user has joined as a host or audience
   late RtcEngine agoraEngine; // Agora engine instance
   final bool _isRenderSurfaceView = true;
-  late final MediaPlayerController _mediaPlayerController;
-  String mediaLocation =
-      "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-
-  bool _isUrlOpened = false; // Media file has been opened
-  bool _isPlaying = false; // Media file is playing
-  bool _isPaused = false; // Media player is paused
-
-  int _duration = 0; // Total duration of the loaded media file
-  int _seekPos = 0; // Current play position
-  int volume = 50;
-  bool _isMuted = false;
-  bool _isScreenShared = false;
-
-
 
   @override
   initState() {
@@ -45,17 +32,7 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
   @override
   void dispose() async {
     leave();
-    // Dispose the media player
-    _mediaPlayerController.dispose();
-
-    setState(() {
-      _isPlaying = false;
-    });
-
-    _isUrlOpened = false;
-    _isPaused = false;
-
-    await agoraEngine.release();
+    agoraEngine.destroy();
     super.dispose();
   }
 
@@ -65,82 +42,24 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
     ));
   }
 
-  onMuteChecked(bool value) {
-    setState(() {
-      _isMuted = value;
-      agoraEngine.muteAllRemoteAudioStreams(_isMuted);
-    });
-  }
-
-  onVolumeChanged(double newValue) {
-    setState(() {
-      volume = newValue.toInt();
-      agoraEngine.adjustRecordingSignalVolume(volume);
-    });
-  }
-
-  Future<void> shareScreen() async {
-    setState(() {
-      _isScreenShared = !_isScreenShared;
-    });
-
-    if (_isScreenShared) {
-      // Start screen sharing
-      agoraEngine.startScreenCapture(const ScreenCaptureParameters2(
-          captureAudio: true,
-          audioParams: ScreenAudioParameters(
-              sampleRate: 16000, channels: 2, captureSignalVolume: 100),
-          captureVideo: true,
-          videoParams: ScreenVideoParameters(
-              dimensions: VideoDimensions(height: 1280, width: 720),
-              frameRate: 15,
-              bitrate: 600)));
-
-
-    } else {
-      await agoraEngine.stopScreenCapture();
-    }
-
-    // Update channel media options to publish camera or screen capture streams
-    ChannelMediaOptions options = ChannelMediaOptions(
-      publishCameraTrack: !_isScreenShared,
-      publishMicrophoneTrack: !_isScreenShared,
-      publishScreenTrack: _isScreenShared,
-      publishScreenCaptureAudio: _isScreenShared,
-      publishScreenCaptureVideo: _isScreenShared,
-    );
-
-    agoraEngine.updateChannelMediaOptions(options);
-  }
-
-
   void join() async {
+    await agoraEngine.enableVideo();
+    await agoraEngine.startPreview();
 
     // Set channel options
-    ChannelMediaOptions options;
+    ChannelMediaOptions options = ChannelMediaOptions();
 
     // Set channel profile and client role
-    if (_isHost) {
-      options = const ChannelMediaOptions(
-        clientRoleType: ClientRoleType.clientRoleBroadcaster,
-        channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
-      );
-      await agoraEngine.startPreview();
-    } else {
-      options = const ChannelMediaOptions(
-        clientRoleType: ClientRoleType.clientRoleAudience,
-        channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
-      );
-    }
+    await agoraEngine
+        .setClientRole(_isHost ? ClientRole.Broadcaster : ClientRole.Audience);
+    // await agoraEngine.setChannelProfile(ChannelProfile.LiveBroadcasting);
+    await agoraEngine.setChannelProfile(_isHost
+        ? ChannelProfile.LiveBroadcasting
+        : ChannelProfile.Communication);
 
     await agoraEngine.joinChannel(
-      token: token,
-      channelId: channelName,
-      options: options,
-      uid: uid,
-    );
+        token, channelName, '', uid, options = options);
   }
-
 
   Future<void> leave() async {
     await agoraEngine.disableVideo();
@@ -154,173 +73,62 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
 
   Future<void> setupVideoSDKEngine() async {
     // retrieve or request camera and microphone permissions
-    await [Permission.microphone, Permission.camera].request();
+    if (!kIsWeb) await [Permission.microphone, Permission.camera].request();
 
     //create an instance of the Agora engine
-    agoraEngine = createAgoraRtcEngine();
-    await agoraEngine.initialize(const RtcEngineContext(
-        appId: agoraAppId
-    ));
-
-    await agoraEngine.enableVideo();
+    agoraEngine =
+        await RtcEngine.createWithContext(RtcEngineContext(agoraAppId));
 
     // Register the event handler
-    agoraEngine.registerEventHandler(
+    agoraEngine.setEventHandler(
       RtcEngineEventHandler(
-        onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
-          showMessage("Local user uid:${connection.localUid} joined the channel");
-          setState(() {
-            _isJoined = true;
-          });
+        joinChannelSuccess: (channel, uid, elapsed) {
+          showMessage("Local user uid:$uid joined the channel");
+          setState(() => _isJoined = true);
         },
-        onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
+        userJoined: (int remoteUid, int elapsed) {
           showMessage("Remote user uid:$remoteUid joined the channel");
-          setState(() {
-            _remoteUid = remoteUid;
-          });
+          setState(() => _remoteUid = remoteUid);
         },
-        onUserOffline: (RtcConnection connection, int remoteUid,
-            UserOfflineReasonType reason) {
-          showMessage("Remote user uid:$remoteUid left the channel");
-          setState(() {
-            _remoteUid = null;
-          });
+        userOffline: (uid, reason) {
+          showMessage("Remote user uid:$uid left the channel");
+          setState(() => _remoteUid = null);
         },
       ),
     );
+
+    // Set client role and channel profile
+    agoraEngine.setChannelProfile(ChannelProfile.LiveBroadcasting);
   }
-
-  void playMedia() async {
-    if (!_isUrlOpened) {
-      await initializeMediaPlayer();
-      // Open the media file
-      _mediaPlayerController.open(url:mediaLocation, startPos:0);
-    } else if (_isPaused) {
-      // Resume playing
-      _mediaPlayerController.resume();
-      setState(() {
-        _isPaused = false;
-      });
-    } else if (_isPlaying) {
-      // Pause media player
-      _mediaPlayerController.pause();
-      setState(() {
-        _isPaused = true;
-      });
-    } else {
-      // Play the loaded media file
-      _mediaPlayerController.play();
-      setState(() {
-        _isPlaying = true;
-        updateChannelPublishOptions(_isPlaying);
-      });
-    }
-  }
-
-  Future<void> initializeMediaPlayer() async {
-    _mediaPlayerController= MediaPlayerController(
-        rtcEngine: agoraEngine,
-        useAndroidSurfaceView: true,
-        canvas: VideoCanvas(uid: uid,
-            sourceType: VideoSourceType.videoSourceMediaPlayer
-        )
-    );
-
-    await _mediaPlayerController.initialize();
-
-    _mediaPlayerController.registerPlayerSourceObserver(
-      MediaPlayerSourceObserver(
-        onCompleted: () {
-
-        },
-        onPlayerSourceStateChanged:
-            (MediaPlayerState state, MediaPlayerError ec) async {
-          showMessage(state.name);
-
-          if (state == MediaPlayerState.playerStateOpenCompleted) {
-            // Media file opened successfully
-            _duration = await _mediaPlayerController.getDuration();
-            setState(() {
-              _isUrlOpened = true;
-            });
-          } else if (state == MediaPlayerState.playerStatePlaybackAllLoopsCompleted) {
-            // Media file finished playing
-            setState(() {
-              _isPlaying = false;
-              _seekPos = 0;
-              // Restore camera and microphone streams
-              updateChannelPublishOptions(_isPlaying);
-            });
-          }
-        },
-        onPositionChanged: (int position) {
-          setState(() {
-            _seekPos = position;
-          });
-        },
-        onPlayerEvent:
-            (MediaPlayerEvent eventCode, int elapsedTime, String message) {
-          // Other events
-        },
-      ),
-    );
-  }
-
-  Widget _localPreview() {
-    // Display local video or screen sharing preview
-    if (_isJoined) {
-      if (!_isScreenShared) {
-        return AgoraVideoView(
-          controller: VideoViewController(
-            rtcEngine: agoraEngine,
-            canvas: const VideoCanvas(uid: 0),
-          ),
-        );
-      } else {
-        return AgoraVideoView(
-            controller: VideoViewController(
-              rtcEngine: agoraEngine,
-              canvas: const VideoCanvas(
-                uid: 0,
-                sourceType: VideoSourceType.videoSourceScreen,
-              ),
-            ));
-      }
-    } else {
-      return const Text(
-        'Join a channel',
-        textAlign: TextAlign.center,
-      );
-    }
-  }
-
-
-
 
   Widget _videoPanel() {
     if (!_isJoined) {
-      return const Text(
-        'Join a channel',
-        textAlign: TextAlign.center,
-      );
+      return Container();
     } else if (_isHost) {
-      // Show local video preview
-      return AgoraVideoView(
-        controller: VideoViewController(
-          rtcEngine: agoraEngine,
-          canvas: VideoCanvas(uid: 0),
-        ),
-      );
+      // Local user joined as a host
+      return _isRenderSurfaceView
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: const rtc_local_view.SurfaceView(channelId: channelName),
+            )
+          : ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: const rtc_local_view.TextureView(channelId: channelName),
+            );
     } else {
-      // Show remote video
+      // Local user joined as audience
       if (_remoteUid != null) {
-        return AgoraVideoView(
-          controller: VideoViewController.remote(
-            rtcEngine: agoraEngine,
-            canvas: VideoCanvas(uid: _remoteUid),
-            connection: RtcConnection(channelId: channelName),
-          ),
-        );
+        return _isRenderSurfaceView
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: rtc_remote_view.SurfaceView(
+                    uid: _remoteUid!, channelId: channelName),
+              )
+            : ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: rtc_remote_view.TextureView(
+                    uid: _remoteUid!, channelId: channelName),
+              );
       } else {
         return const Text(
           'Waiting for a host to join',
@@ -338,26 +146,6 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
     if (_isJoined) leave();
   }
 
-  Widget _mediaPLayerButton() {
-    String caption = "";
-
-    if (!_isUrlOpened) {
-      caption = "Open media file";
-    } else if (_isPaused) {
-      caption = "Resume playing media";
-    } else if (_isPlaying) {
-      caption = "Pause playing media";
-    } else {
-      caption = "Play media file";
-    }
-
-    return ElevatedButton(
-      onPressed: _isJoined ? () => {playMedia()} : null,
-      child: Text(caption),
-    );
-  }
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -370,43 +158,8 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
           children: <Widget>[
             // Container for the local video
             Expanded(child: _videoPanel()),
+
             // Radio Buttons
-            _mediaPLayerButton(),
-            Slider(
-                value: _seekPos.toDouble(),
-                min: 0,
-                max: _duration.toDouble(),
-                divisions: 100,
-                label: '${(_seekPos / 1000.round())} s',
-                onChanged: (double value) {
-                  _seekPos = value.toInt();
-                  _mediaPlayerController.seek(_seekPos);
-                  setState(() {});
-                }),
-
-            Row(
-              children: <Widget>[
-                Checkbox(
-                    value: _isMuted,
-                    onChanged: (_isMuted) => {onMuteChecked(_isMuted!)}
-                ),
-                const Text("Mute"),
-                Expanded(
-                  child: Slider(
-                    min: 0,
-                    max: 100,
-                    value: volume.toDouble(),
-                    onChanged: (value) => {onVolumeChanged(value)},
-                  ),
-                ),
-              ],
-            ),
-            ElevatedButton(
-              onPressed: _isJoined ? () => {shareScreen()} : null,
-              child: Text(
-                  _isScreenShared ? "Stop sharing screen" : "Share screen"),
-            ),
-
             Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
               Radio<bool>(
                 value: true,
@@ -449,16 +202,4 @@ class _VideoStreamPageState extends State<VideoStreamPage> {
       ),
     );
   }
-
-  void updateChannelPublishOptions(bool publishMediaPlayer) {
-    ChannelMediaOptions channelOptions = ChannelMediaOptions(
-        publishMediaPlayerAudioTrack: publishMediaPlayer,
-        publishMediaPlayerVideoTrack: publishMediaPlayer,
-        publishMicrophoneTrack: !publishMediaPlayer,
-        publishCameraTrack: !publishMediaPlayer,
-        publishMediaPlayerId: _mediaPlayerController.getMediaPlayerId());
-
-    agoraEngine.updateChannelMediaOptions(channelOptions);
-  }
-
 }
