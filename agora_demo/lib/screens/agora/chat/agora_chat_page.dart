@@ -99,6 +99,23 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
   }
 
   void _addChatListener() {
+
+    ChatClient.getInstance.chatManager.addMessageEvent(
+        AgoraChatConfig.listenerId,
+        ChatMessageEvent(
+          onSuccess: (msgId, msg) {
+            _addLogToConsole("send message succeed");
+          },
+          onProgress: (msgId, progress) {
+            _addLogToConsole("send message succeed");
+          },
+          onError: (msgId, msg, error) {
+            _addLogToConsole(
+              "send message failed, code: ${error.code}, desc: ${error.description}",
+            );
+          },
+        ));
+
     ChatClient.getInstance.chatManager.addEventHandler(
       AgoraChatConfig.listenerId,
       ChatEventHandler(onMessagesReceived: onMessagesReceived),
@@ -137,29 +154,29 @@ class _AgoraChatPageState extends State<AgoraChatPage> {
       targetId: _chatId,
       content: _messageContent!,
     );
-    msg.setMessageStatusCallBack(MessageStatusCallBack(
-      onSuccess: () {
-        _addLogToConsole("send message: $_messageContent");
-        _textController.clear();
-        setState(
-          () {
-            _messages.add(
-              chatgpt.ChatMessage(
-                text: _messageContent ?? "",
-                chatMessageType: chatgpt.ChatMessageType.user,
-              ),
-            );
-          },
-        );
-        Future.delayed(const Duration(milliseconds: 50))
-            .then((_) => _scrollDown());
-      },
-      onError: (e) {
-        _addLogToConsole(
-          "send message failed, code: ${e.code}, desc: ${e.description}",
-        );
-      },
-    ));
+    // msg.setMessageStatusCallBack(MessageStatusCallBack(
+    //   onSuccess: () {
+    //     _addLogToConsole("send message: $_messageContent");
+    //     _textController.clear();
+    //     setState(
+    //       () {
+    //         _messages.add(
+    //           chatgpt.ChatMessage(
+    //             text: _messageContent ?? "",
+    //             chatMessageType: chatgpt.ChatMessageType.user,
+    //           ),
+    //         );
+    //       },
+    //     );
+    //     Future.delayed(const Duration(milliseconds: 50))
+    //         .then((_) => _scrollDown());
+    //   },
+    //   onError: (e) {
+    //     _addLogToConsole(
+    //       "send message failed, code: ${e.code}, desc: ${e.description}",
+    //     );
+    //   },
+    // ));
     ChatClient.getInstance.chatManager.sendMessage(msg);
   }
 
