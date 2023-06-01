@@ -1,5 +1,5 @@
 import 'package:agora_demo/utils/constants.dart';
-import 'package:agora_rtc_engine/rtc_engine.dart';
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -40,45 +40,57 @@ class _AudioCallPageState extends State<AudioCallPage> {
 
   Future<void> setupVoiceSDKEngine() async {
     // retrieve or request microphone permission
-    if (!kIsWeb) await [Permission.microphone].request();
+    await [Permission.microphone].request();
 
     //create an instance of the Agora engine
-    agoraEngine =
-        await RtcEngine.createWithContext(RtcEngineContext(agoraAppId));
+    agoraEngine = createAgoraRtcEngine();
+    await agoraEngine.initialize(const RtcEngineContext(
+        appId: agoraAppId
+    ));
 
     // Register the event handler
-    agoraEngine.setEventHandler(
+    agoraEngine.registerEventHandler(
       RtcEngineEventHandler(
-        joinChannelSuccess: (channel, uid, elapsed) {
-          showMessage("Local user uid:$uid joined the channel");
-          setState(() => _isJoined = true);
+        onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
+          showMessage("Local user uid:${connection.localUid} joined the channel");
+          setState(() {
+            _isJoined = true;
+          });
         },
-        userJoined: (int remoteUid, int elapsed) {
+        onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
           showMessage("Remote user uid:$remoteUid joined the channel");
-          setState(() => _remoteUid = remoteUid);
+          setState(() {
+            _remoteUid = remoteUid;
+          });
         },
-        userOffline: (uid, reason) {
-          showMessage("Remote user uid:$uid left the channel");
-          setState(() => _remoteUid = null);
+        onUserOffline: (RtcConnection connection, int remoteUid,
+            UserOfflineReasonType reason) {
+          showMessage("Remote user uid:$remoteUid left the channel");
+          setState(() {
+            _remoteUid = null;
+          });
         },
       ),
     );
-
-    // Set client role and channel profile
-    // agoraEngine.setClientRole(ClientRole.Broadcaster);
-    // agoraEngine.setChannelProfile(ChannelProfile.Communication);
   }
 
-  void join() async {
-    // Set channel options
-    ChannelMediaOptions options = ChannelMediaOptions(
-      publishLocalVideo: false,
-      autoSubscribeVideo: false,
+
+  void  join() async {
+
+    // Set channel options including the client role and channel profile
+    ChannelMediaOptions options = const ChannelMediaOptions(
+      clientRoleType: ClientRoleType.clientRoleBroadcaster,
+      channelProfile: ChannelProfileType.channelProfileCommunication,
     );
 
     await agoraEngine.joinChannel(
-        token, channelName, '', uid, options = options);
+      token: token,
+      channelId: channelName,
+      options: options,
+      uid: uid,
+    );
   }
+
 
   void leave() {
     setState(() {
