@@ -43,6 +43,8 @@ dependencies:
   text_to_speech: 
   flutter_chatgpt_api: ^1.0.0
   http: ^0.13.5
+  youtube_player_flutter: ^8.1.2
+  uuid: ^3.0.7
   # sign_in_with_apple: ^4.2.0
 
   # The following adds the Cupertino Icons font to your application.
